@@ -2,6 +2,7 @@
   "name": "ssaju",
   "version": "0.1.0",
   "description": "Tiny, blazing-fast saju/manselyeok engine with LLM-ready output. Zero deps, gzip 15KB, 0.04ms per calc.",
+  "license": "MIT",
   "keywords": ["saju", "manselyeok", "four-pillars", "bazi", "korean-astrology", "llm", "fortune"],
   "type": "module",
   "main": "./dist/index.mjs",

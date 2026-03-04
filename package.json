@@ -1,0 +1,43 @@
+{
+  "name": "ssaju",
+  "version": "0.1.0",
+  "description": "Tiny, blazing-fast saju/manselyeok engine with LLM-ready output. Zero deps, gzip 15KB, 0.04ms per calc.",
+  "keywords": ["saju", "manselyeok", "four-pillars", "bazi", "korean-astrology", "llm", "fortune"],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build:js": "esbuild src/calculate.ts --bundle --format=esm --platform=neutral --target=es2020 --minify --legal-comments=none --outfile=dist/index.mjs && terser dist/index.mjs -c passes=3,pure_getters=true -m --module --ecma 2020 -o dist/index.mjs",
+    "build:types": "dts-bundle-generator --project tsconfig.types.json --out-file dist/index.d.ts src/calculate.ts",
+    "size": "node scripts/size-report.mjs",
+    "perf": "node scripts/benchmark.mjs",
+    "build": "npm run clean && npm run build:js && npm run build:types && npm run size",
+    "prepack": "npm run build",
+    "sample": "tsx sample.ts",
+    "test": "tsx --test tests/calculateSaju.test.ts"
+  },
+  "devDependencies": {
+    "dts-bundle-generator": "^9.5.1",
+    "esbuild": "^0.27.0",
+    "rimraf": "^6.0.1",
+    "terser": "^5.44.1",
+    "tsx": "^4.20.6"
+  }
+}

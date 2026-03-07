@@ -42,8 +42,8 @@ test("golden case: 1992-10-24 05:30 solar", () => {
   assert(result.dayBranch === "酉", "day branch should be 酉");
   assert(result.advanced.geukguk === "종왕격", "geukguk should be 종왕격");
   assertEquals(result.advanced.yongsin, ["庚", "甲", "丁"], "yongsin mismatch");
-  assert(result.currentAge === 35, "currentAge should be 35 when now is 2026");
-  assert(result.daeun.current?.age_range === "35", "current daeun should start at age 35");
+  assert(result.currentAge === 33, "currentAge should be 33 when now is 2026");
+  assert(result.daeun.current?.age_range === "25", "current daeun should start at age 25");
 
   assertEquals(
     result.gongmang.branches,
@@ -427,9 +427,24 @@ test("toCompact should contain correct pillar data", () => {
   assert(compact.includes("酉(유)금-"), "compact should contain day branch with element and yinyang");
   assert(compact.includes("격: 종왕격"), "compact should contain geukguk");
   assert(compact.includes("공망 戌(술) 亥(해)"), "compact should contain gongmang values");
-  assert(compact.includes("만 35세"), "compact should contain current age");
+  assert(compact.includes("만 33세"), "compact should contain current age");
   assert(compact.includes("## 세운 2026 기준"), "compact seyun should reference current year");
   assert(compact.includes("★2026"), "compact seyun should mark current year");
+});
+
+test("currentAge should follow floor(day_diff/365.25): 1998-02-22 -> 28", () => {
+  const result = calculateSaju({
+    year: 1998,
+    month: 2,
+    day: 22,
+    hour: 0,
+    minute: 0,
+    gender: "남",
+    calendar: "solar",
+    now: new Date("2026-03-04T00:00:00+09:00"),
+  });
+
+  assert(result.currentAge === 28, "currentAge should be 28 for 1998-02-22 at 2026-03-04 KST");
 });
 
 test("daeun should be solar-term-time based by default", () => {

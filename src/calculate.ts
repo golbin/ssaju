@@ -9,7 +9,7 @@
 import { generateMarkdownSummary, generateCompactText } from "./format.ts";
 import {
   calculateFourPillars,
-  getKstNowYear,
+  getKstNowDate,
   buildReferenceCodes,
   lunarToSolar,
   normalizeBirthDate,
@@ -48,16 +48,16 @@ export function calculateSaju(input: SajuInput): SajuResult {
     minute: calcBirth.minute,
   });
 
-  const currentYear = getKstNowYear(normalizedInput.now);
+  const refNow = normalizedInput.now ? new Date(normalizedInput.now) : new Date();
+  const currentDate = getKstNowDate(refNow);
 
   const analysis = analyzeChart({
     fourPillars,
     normalizedBirth,
     normalizedInput,
-    currentYear,
+    currentDate,
   });
 
-  const refNow = normalizedInput.now ? new Date(normalizedInput.now) : new Date();
   const reference = buildReferenceCodes(refNow);
 
   const result: SajuResult = {

@@ -170,7 +170,7 @@ function countElementsByStemBranch(data: SajuResult): { stem: Record<string, num
 
 export function generateMarkdownSummary(data: SajuResult): string {
   let md = "";
-  const currentYear = data.currentAge + data.solar.year - 1;
+  const currentYear = Number(data.reference.now.slice(0, 4));
   const genderText = data.input.gender === "남" ? "남성" : "여성";
   const stemRelationText = data.stemRelations.length ? data.stemRelations.map((r) => r.desc).join("; ") : "없음";
   const hiddenByPillar = formatHiddenStemsByPillar(data);
@@ -324,7 +324,7 @@ export function generateMarkdownSummary(data: SajuResult): string {
 
 export function generateCompactText(data: SajuResult): string {
   const lines: string[] = [];
-  const currentYear = data.currentAge + data.solar.year - 1;
+  const currentYear = Number(data.reference.now.slice(0, 4));
   const dayDetail = data.pillarDetails.day;
   const pillarKeys = PILLAR_KEYS;
   const strengthChar = data.advanced.dayStrength.strength === "strong" ? "강" : data.advanced.dayStrength.strength === "weak" ? "약" : "중";

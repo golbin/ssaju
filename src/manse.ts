@@ -282,9 +282,10 @@ function getTimezoneStandardLongitude(timeZone: string, referenceDate: Date): nu
   return standardOffset / 4;
 }
 
-export function getKstNowYear(reference?: Date): number {
+export function getKstNowDate(reference?: Date): { year: number; month: number; day: number } {
   const now = reference ? new Date(reference) : new Date();
-  return formatInTimeZone(now, KOREA_TIMEZONE).year;
+  const kst = formatInTimeZone(now, KOREA_TIMEZONE);
+  return { year: kst.year, month: kst.month, day: kst.day };
 }
 
 // =============================

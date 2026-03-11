@@ -40,6 +40,7 @@
     "build": "npm run clean && npm run build:js && npm run build:types && npm run size",
     "prepack": "npm run build",
     "sample": "tsx sample.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.types.json",
     "test": "tsx --test tests/calculateSaju.test.ts"
   },
   "devDependencies": {

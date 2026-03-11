@@ -88,6 +88,7 @@ export function calculateSaju(input: SajuInput): SajuResult {
     branchRelations: analysis.branchRelations,
     sals: analysis.sals,
     currentAge: analysis.currentAge,
+    currentYear: analysis.currentYear,
     daeun: analysis.daeun,
     seyun: analysis.seyun,
     wolun: analysis.wolun,

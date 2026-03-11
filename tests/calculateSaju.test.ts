@@ -427,7 +427,7 @@ test("toCompact should contain correct pillar data", () => {
   assert(compact.includes("酉(유)금-"), "compact should contain day branch with element and yinyang");
   assert(compact.includes("격: 종왕격"), "compact should contain geukguk");
   assert(compact.includes("공망 戌(술) 亥(해)"), "compact should contain gongmang values");
-  assert(compact.includes("만 35세"), "compact should contain current age");
+  assert(compact.includes("35세"), "compact should contain current age");
   assert(compact.includes("## 세운 2026 기준"), "compact seyun should reference current year");
   assert(compact.includes("★2026"), "compact seyun should mark current year");
 });

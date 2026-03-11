@@ -37,7 +37,7 @@ export function normalizeInput(input: SajuInput): NormalizedInput {
     year: input.year,
     month: input.month,
     day: input.day,
-    hour: input.hour ?? 0,
+    hour: input.hour ?? 12,
     minute: input.minute ?? 0,
     gender: input.gender ?? "여",
     calendar: input.calendar ?? "solar",

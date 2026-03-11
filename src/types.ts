@@ -67,7 +67,7 @@ export type DaeunItem = {
   startYear: number;
   stemTenGod: string;
   branchTenGod: string;
-  "12unsung": string;
+  stage12: string;
   sal: string[];
 };
 
@@ -83,13 +83,13 @@ export type SeyunItem = {
 
 export type WolunItem = {
   month: number;
-  month_name: string;
+  monthName: string;
   ganzhi: string;
   stem: string;
   branch: string;
-  stem_tengod: string;
-  branch_tengod: string;
-  "12unsung": string;
+  stemTenGod: string;
+  branchTenGod: string;
+  stage12: string;
 };
 
 export type SajuResult = {
@@ -133,6 +133,7 @@ export type SajuResult = {
   branchRelations: BranchRelations;
   sals: Record<PillarKey, { twelveSal: string; specialSals: string[] }>;
   currentAge: number;
+  currentYear: number;
   daeun: {
     startAge: number;
     startAgePrecise: number;

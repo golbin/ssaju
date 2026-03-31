@@ -478,6 +478,108 @@ test("canonical hidden stems for 申 and 亥 should remain stable", () => {
   );
 });
 
+test("canonical pillar fixtures should hold for externally cross-checked edge cases", () => {
+  const solar1999 = calculateSaju({
+    year: 1999,
+    month: 10,
+    day: 20,
+    hour: 10,
+    minute: 25,
+    gender: "남",
+    calendar: "solar",
+  });
+  assertEquals(
+    solar1999.pillars,
+    {
+      year: "己卯",
+      month: "甲戌",
+      day: "乙巳",
+      hour: "辛巳",
+    },
+    "1999-10-20 should be in 戌 month after 寒露",
+  );
+
+  const lunar2006 = calculateSaju({
+    year: 2006,
+    month: 8,
+    day: 20,
+    hour: 6,
+    minute: 38,
+    gender: "남",
+    calendar: "lunar",
+    leap: false,
+  });
+  assertEquals(
+    lunar2006.solar,
+    {
+      year: 2006,
+      month: 10,
+      day: 11,
+    },
+    "2006 lunar conversion mismatch",
+  );
+  assertEquals(
+    lunar2006.pillars,
+    {
+      year: "丙戌",
+      month: "戊戌",
+      day: "癸酉",
+      hour: "乙卯",
+    },
+    "2006-10-11 should remain 戌 month before 立冬",
+  );
+
+  const lunar2000 = calculateSaju({
+    year: 2000,
+    month: 12,
+    day: 12,
+    hour: 3,
+    minute: 38,
+    gender: "남",
+    calendar: "lunar",
+    leap: false,
+  });
+  assertEquals(
+    lunar2000.solar,
+    {
+      year: 2001,
+      month: 1,
+      day: 6,
+    },
+    "2000 lunar conversion mismatch",
+  );
+  assertEquals(
+    lunar2000.pillars,
+    {
+      year: "庚辰",
+      month: "己丑",
+      day: "己巳",
+      hour: "丙寅",
+    },
+    "2001-01-06 should still use previous year pillar before 立春",
+  );
+
+  const solar1990 = calculateSaju({
+    year: 1990,
+    month: 8,
+    day: 17,
+    hour: 11,
+    minute: 38,
+    gender: "남",
+    calendar: "solar",
+  });
+  assertEquals(
+    solar1990.pillars,
+    {
+      year: "庚午",
+      month: "甲申",
+      day: "甲寅",
+      hour: "庚午",
+    },
+    "1990-08-17 canonical pillar fixture mismatch",
+  );
+});
+
 test("markdown should honor injected now year (deterministic output)", () => {
   const result = calculateSaju({
     year: 1992,

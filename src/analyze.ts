@@ -15,7 +15,6 @@ import {
   STEM_ELEMENT,
   STEM_YINYANG,
   TEN_GODS,
-  TWELVE_STAGES_BONG,
   TWELVE_STAGES_GEO,
   WOLUN_MONTH_NAMES,
   YEAR_STEM_TO_MONTH_START_STEM_INDEX,
@@ -56,6 +55,8 @@ export type SajuAnalysis = Pick<
   | "wolun"
   | "advanced"
 >;
+
+const PILLAR_KEYS: readonly PillarKey[] = ["hour", "day", "month", "year"];
 
 export function analyzeChart(args: {
   fourPillars: FourPillarsDetail;
@@ -108,18 +109,8 @@ export function analyzeChart(args: {
   };
 
   const stages12 = {
-    bong: {
-      hour: get12Stage(dayStem, hourPillar.branch, "bong"),
-      day: get12Stage(dayStem, dayPillar.branch, "bong"),
-      month: get12Stage(dayStem, monthPillar.branch, "bong"),
-      year: get12Stage(dayStem, yearPillar.branch, "bong"),
-    },
-    geo: {
-      hour: get12Stage(dayStem, hourPillar.branch, "geo"),
-      day: get12Stage(dayStem, dayPillar.branch, "geo"),
-      month: get12Stage(dayStem, monthPillar.branch, "geo"),
-      year: get12Stage(dayStem, yearPillar.branch, "geo"),
-    },
+    bong: mapPillars((key) => get12Stage(dayStem, pillarDetails[key].branch, "bong")),
+    geo: mapPillars((key) => get12Stage(dayStem, pillarDetails[key].branch, "geo")),
   };
 
   const stemsInPillarOrder: [string, string, string, string] = [
@@ -138,24 +129,10 @@ export function analyzeChart(args: {
   const stemRelations = getStemRelations(stemsInPillarOrder);
   const branchRelations = getBranchRelations(branchesInPillarOrder);
 
-  const sals: Record<PillarKey, { twelveSal: string; specialSals: string[] }> = {
-    hour: {
-      twelveSal: getTwelveSals(yearPillar.branch, hourPillar.branch),
-      specialSals: calculateSals(dayPillar.stem, dayPillar.branch, hourPillar.branch),
-    },
-    day: {
-      twelveSal: getTwelveSals(yearPillar.branch, dayPillar.branch),
-      specialSals: calculateSals(dayPillar.stem, dayPillar.branch, dayPillar.branch),
-    },
-    month: {
-      twelveSal: getTwelveSals(yearPillar.branch, monthPillar.branch),
-      specialSals: calculateSals(dayPillar.stem, dayPillar.branch, monthPillar.branch),
-    },
-    year: {
-      twelveSal: getTwelveSals(yearPillar.branch, yearPillar.branch),
-      specialSals: calculateSals(dayPillar.stem, dayPillar.branch, yearPillar.branch),
-    },
-  };
+  const sals: Record<PillarKey, { twelveSal: string; specialSals: string[] }> = mapPillars((key) => ({
+    twelveSal: getTwelveSals(yearPillar.branch, pillarDetails[key].branch),
+    specialSals: calculateSals(dayPillar.stem, dayPillar.branch, pillarDetails[key].branch),
+  }));
 
   const fiveElements = getFiveElements({
     year: { stem: yearPillar.stem, branch: yearPillar.branch },
@@ -267,11 +244,41 @@ function getTenGod(dayStem: string, otherStem: string): string {
   return TEN_GODS[dayStem]?.[otherStem] || "";
 }
 
+function mapPillars<T>(mapper: (key: PillarKey) => T): Record<PillarKey, T> {
+  const out = {} as Record<PillarKey, T>;
+  for (const key of PILLAR_KEYS) out[key] = mapper(key);
+  return out;
+}
+
+// 봉법 12운성은 장생 시작지와 음양에 따른 순행/역행으로 결정된다.
+const TWELVE_STAGE_SEQUENCE = ["장생", "목욕", "관대", "건록", "제왕", "쇠", "병", "사", "묘", "절", "태", "양"] as const;
+const TWELVE_STAGE_START_BRANCH: Record<string, (typeof EARTHLY_BRANCHES)[number]> = {
+  甲: "亥",
+  乙: "午",
+  丙: "寅",
+  丁: "酉",
+  戊: "寅",
+  己: "酉",
+  庚: "巳",
+  辛: "子",
+  壬: "申",
+  癸: "卯",
+};
+
 function get12Stage(dayStem: string, branch: string, method: "bong" | "geo" = "bong"): string {
   const branchIdx = EARTHLY_BRANCHES.indexOf(branch as (typeof EARTHLY_BRANCHES)[number]);
   if (branchIdx < 0) return "";
-  const table = method === "bong" ? TWELVE_STAGES_BONG : TWELVE_STAGES_GEO;
-  return table[dayStem]?.[branchIdx] || "";
+  if (method === "bong") {
+    const startBranch = TWELVE_STAGE_START_BRANCH[dayStem];
+    const startIdx = EARTHLY_BRANCHES.indexOf(startBranch as (typeof EARTHLY_BRANCHES)[number]);
+    if (startIdx < 0) return "";
+
+    const isYangStem = STEM_YINYANG[dayStem] === "양";
+    const offset = isYangStem ? mod(branchIdx - startIdx, 12) : mod(startIdx - branchIdx, 12);
+    return TWELVE_STAGE_SEQUENCE[offset] || "";
+  }
+
+  return TWELVE_STAGES_GEO[dayStem]?.[branchIdx] || "";
 }
 
 function getFiveElements(pillars: {
@@ -296,12 +303,26 @@ function getFiveElements(pillars: {
   return counts;
 }
 
-const SAL_NAMES = ["년살", "월살", "망신살", "장성살", "반안살", "역마살", "육해살", "화개살", "겁살", "재살", "천살", "지살"];
+// 12신살은 연지의 삼합국 기준 시작지에서 순차 배치한다.
+const SAL_NAMES = ["화개살", "겁살", "재살", "천살", "지살", "년살", "월살", "망신살", "장성살", "반안살", "역마살", "육해살"] as const;
+const TWELVE_SAL_GROUP_START: ReadonlyArray<{ branches: readonly string[]; start: (typeof EARTHLY_BRANCHES)[number] }> = [
+  { branches: ["申", "子", "辰"], start: "辰" },
+  { branches: ["寅", "午", "戌"], start: "戌" },
+  { branches: ["亥", "卯", "未"], start: "未" },
+  { branches: ["巳", "酉", "丑"], start: "丑" },
+];
 
 function getTwelveSals(yearBranch: string, targetBranch: string): string {
   const targetIdx = (EARTHLY_BRANCHES as readonly string[]).indexOf(targetBranch);
-  const startIdx = (EARTHLY_BRANCHES as readonly string[]).indexOf(yearBranch);
-  return SAL_NAMES[mod(targetIdx - startIdx, 12)];
+  if (targetIdx < 0) return "";
+
+  const group = TWELVE_SAL_GROUP_START.find(({ branches }) => branches.includes(yearBranch));
+  if (!group) return "";
+
+  const startIdx = (EARTHLY_BRANCHES as readonly string[]).indexOf(group.start);
+  if (startIdx < 0) return "";
+
+  return SAL_NAMES[mod(targetIdx - startIdx, 12)] || "";
 }
 
 function getCheonEulGwiin(dayStem: string): string[] {

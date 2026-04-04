@@ -50,6 +50,7 @@ export type SajuAnalysis = Pick<
   | "branchRelations"
   | "sals"
   | "currentAge"
+  | "currentYear"
   | "daeun"
   | "seyun"
   | "wolun"
@@ -187,6 +188,7 @@ export function analyzeChart(args: {
     branchRelations,
     sals,
     currentAge,
+    currentYear,
     daeun,
     seyun,
     wolun,
@@ -325,74 +327,78 @@ function getTwelveSals(yearBranch: string, targetBranch: string): string {
   return SAL_NAMES[mod(targetIdx - startIdx, 12)] || "";
 }
 
+const CHEON_EUL_GWIIN_MAP: Record<string, string[]> = {
+  甲: ["丑", "未"],
+  乙: ["子", "申"],
+  丙: ["亥", "酉"],
+  丁: ["亥", "酉"],
+  戊: ["丑", "未"],
+  己: ["子", "申"],
+  庚: ["丑", "未"],
+  辛: ["寅", "午"],
+  壬: ["卯", "巳"],
+  癸: ["卯", "巳"],
+};
+
 function getCheonEulGwiin(dayStem: string): string[] {
-  const map: Record<string, string[]> = {
-    甲: ["丑", "未"],
-    乙: ["子", "申"],
-    丙: ["亥", "酉"],
-    丁: ["亥", "酉"],
-    戊: ["丑", "未"],
-    己: ["子", "申"],
-    庚: ["丑", "未"],
-    辛: ["寅", "午"],
-    壬: ["卯", "巳"],
-    癸: ["卯", "巳"],
-  };
-  return map[dayStem] || [];
+  return CHEON_EUL_GWIIN_MAP[dayStem] || [];
 }
+
+const YEOKMA_MAP: Record<string, string> = {
+  寅: "申",
+  申: "寅",
+  巳: "亥",
+  亥: "巳",
+  子: "午",
+  午: "子",
+  卯: "酉",
+  酉: "卯",
+  辰: "戌",
+  戌: "辰",
+  丑: "未",
+  未: "丑",
+};
 
 function getYeokma(dayBranch: string): string {
-  const map: Record<string, string> = {
-    寅: "申",
-    申: "寅",
-    巳: "亥",
-    亥: "巳",
-    子: "午",
-    午: "子",
-    卯: "酉",
-    酉: "卯",
-    辰: "戌",
-    戌: "辰",
-    丑: "未",
-    未: "丑",
-  };
-  return map[dayBranch] || "";
+  return YEOKMA_MAP[dayBranch] || "";
 }
+
+const DOHWA_MAP: Record<string, string> = {
+  寅: "卯",
+  午: "卯",
+  戌: "卯",
+  申: "酉",
+  子: "酉",
+  辰: "酉",
+  巳: "午",
+  酉: "午",
+  丑: "午",
+  亥: "子",
+  卯: "子",
+  未: "子",
+};
 
 function getDohwa(dayBranch: string): string {
-  const map: Record<string, string> = {
-    寅: "卯",
-    午: "卯",
-    戌: "卯",
-    申: "酉",
-    子: "酉",
-    辰: "酉",
-    巳: "午",
-    酉: "午",
-    丑: "午",
-    亥: "子",
-    卯: "子",
-    未: "子",
-  };
-  return map[dayBranch] || "";
+  return DOHWA_MAP[dayBranch] || "";
 }
 
+const HWAGAE_MAP: Record<string, string> = {
+  寅: "戌",
+  午: "戌",
+  戌: "戌",
+  申: "辰",
+  子: "辰",
+  辰: "辰",
+  巳: "丑",
+  酉: "丑",
+  丑: "丑",
+  亥: "未",
+  卯: "未",
+  未: "未",
+};
+
 function getHwagae(dayBranch: string): string {
-  const map: Record<string, string> = {
-    寅: "戌",
-    午: "戌",
-    戌: "戌",
-    申: "辰",
-    子: "辰",
-    辰: "辰",
-    巳: "丑",
-    酉: "丑",
-    丑: "丑",
-    亥: "未",
-    卯: "未",
-    未: "未",
-  };
-  return map[dayBranch] || "";
+  return HWAGAE_MAP[dayBranch] || "";
 }
 
 function calculateSals(dayStem: string, dayBranch: string, targetBranch: string): string[] {
@@ -733,7 +739,7 @@ function calculateDaeun(args: {
       startYear: args.birthSolar.year + age,
       stemTenGod: getTenGod(args.dayStem, stem),
       branchTenGod: getTenGod(args.dayStem, BRANCH_HIDDEN_STEMS[branch]?.정기 || ""),
-      "12unsung": get12Stage(args.dayStem, branch, "bong"),
+      stage12: get12Stage(args.dayStem, branch, "bong"),
       sal: calculateSals(args.dayStem, args.dayBranch, branch),
     });
   }
@@ -799,13 +805,13 @@ function calculateWolun(year: number, dayStem: string): WolunItem[] {
 
     out.push({
       month: i + 1,
-      month_name: WOLUN_MONTH_NAMES[i],
+      monthName: WOLUN_MONTH_NAMES[i],
       ganzhi: stem + branch,
       stem,
       branch,
-      stem_tengod: getTenGod(dayStem, stem),
-      branch_tengod: getTenGod(dayStem, BRANCH_HIDDEN_STEMS[branch]?.정기 || ""),
-      "12unsung": get12Stage(dayStem, branch, "bong"),
+      stemTenGod: getTenGod(dayStem, stem),
+      branchTenGod: getTenGod(dayStem, BRANCH_HIDDEN_STEMS[branch]?.정기 || ""),
+      stage12: get12Stage(dayStem, branch, "bong"),
     });
   }
 
@@ -943,7 +949,7 @@ function generateInterpretation(args: {
   fiveElements: Record<string, number>;
   sinsal: { gilsin: string[]; hyungsin: string[] };
 }): string {
-  let text = "📑 종합 해석\n\n";
+  let text = "";
 
   switch (args.geukguk) {
     case "관격":

@@ -62,9 +62,10 @@ export function analyzeChart(args: {
   fourPillars: FourPillarsDetail;
   normalizedBirth: NormalizedBirth;
   normalizedInput: NormalizedInput;
-  currentYear: number;
+  currentDate: { year: number; month: number; day: number };
 }): SajuAnalysis {
-  const { fourPillars, normalizedBirth, normalizedInput, currentYear } = args;
+  const { fourPillars, normalizedBirth, normalizedInput, currentDate } = args;
+  const currentYear = currentDate.year;
 
   const yearPillar = buildPillarDetail(fourPillars.year.heavenlyStem, fourPillars.year.earthlyBranch);
   const monthPillar = buildPillarDetail(fourPillars.month.heavenlyStem, fourPillars.month.earthlyBranch);
@@ -141,7 +142,7 @@ export function analyzeChart(args: {
     hour: { stem: hourPillar.stem, branch: hourPillar.branch },
   });
 
-  const currentAge = currentYear - normalizedBirth.solar.year + 1;
+  const currentAge = calculateInternationalAge(normalizedBirth.solar, currentDate);
 
   const daeun = calculateDaeun({
     yearStem: yearPillar.stem,
@@ -152,7 +153,7 @@ export function analyzeChart(args: {
     birthCalculation: normalizedBirth.calculation,
     dayStem,
     dayBranch,
-    currentYear,
+    currentDate,
   });
 
   const seyun = calculateSeyun(currentYear, dayStem);
@@ -675,7 +676,7 @@ function calculateDaeun(args: {
   birthCalculation: { year: number; month: number; day: number; hour: number; minute: number };
   dayStem: string;
   dayBranch: string;
-  currentYear: number;
+  currentDate: { year: number; month: number; day: number };
 }): {
   startAge: number;
   startAgePrecise: number;
@@ -738,7 +739,7 @@ function calculateDaeun(args: {
     });
   }
 
-  const currentAge = args.currentYear - args.birthSolar.year + 1;
+  const currentAge = calculateInternationalAge(args.birthSolar, args.currentDate);
   let current: DaeunItem | null = null;
   for (const d of list) {
     if (currentAge >= d.startAge && currentAge <= d.endAge) {
@@ -759,6 +760,16 @@ function calculateDaeun(args: {
       diffDays: Number(diffDaysRaw.toFixed(6)),
     },
   };
+}
+
+function calculateInternationalAge(
+  birthDate: { year: number; month: number; day: number },
+  referenceDate: { year: number; month: number; day: number },
+): number {
+  const birthUtc = Date.UTC(birthDate.year, birthDate.month - 1, birthDate.day);
+  const referenceUtc = Date.UTC(referenceDate.year, referenceDate.month - 1, referenceDate.day);
+  const diffDays = Math.trunc((referenceUtc - birthUtc) / DAY_IN_MS);
+  return Math.floor(diffDays / 365.25);
 }
 
 function calculateSeyun(centerYear: number, dayStem: string, count = 10): SeyunItem[] {

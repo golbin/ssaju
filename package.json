@@ -1,17 +1,25 @@
 {
   "name": "ssaju",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Tiny, blazing-fast saju/manselyeok engine with LLM-ready output. Zero deps, gzip 15KB, 0.04ms per calc.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/golbin/ssaju.git"
+    "url": "git+https://github.com/golbin/ssaju.git"
   },
   "homepage": "https://github.com/golbin/ssaju",
   "bugs": {
     "url": "https://github.com/golbin/ssaju/issues"
   },
-  "keywords": ["saju", "manselyeok", "four-pillars", "bazi", "korean-astrology", "llm", "fortune"],
+  "keywords": [
+    "saju",
+    "manselyeok",
+    "four-pillars",
+    "bazi",
+    "korean-astrology",
+    "llm",
+    "fortune"
+  ],
   "type": "module",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",

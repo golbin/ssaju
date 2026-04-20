@@ -50,6 +50,7 @@ export type SajuAnalysis = Pick<
   | "branchRelations"
   | "sals"
   | "currentAge"
+  | "currentYear"
   | "daeun"
   | "seyun"
   | "wolun"
@@ -62,9 +63,10 @@ export function analyzeChart(args: {
   fourPillars: FourPillarsDetail;
   normalizedBirth: NormalizedBirth;
   normalizedInput: NormalizedInput;
-  currentYear: number;
+  currentDate: { year: number; month: number; day: number };
 }): SajuAnalysis {
-  const { fourPillars, normalizedBirth, normalizedInput, currentYear } = args;
+  const { fourPillars, normalizedBirth, normalizedInput, currentDate } = args;
+  const currentYear = currentDate.year;
 
   const yearPillar = buildPillarDetail(fourPillars.year.heavenlyStem, fourPillars.year.earthlyBranch);
   const monthPillar = buildPillarDetail(fourPillars.month.heavenlyStem, fourPillars.month.earthlyBranch);
@@ -141,7 +143,7 @@ export function analyzeChart(args: {
     hour: { stem: hourPillar.stem, branch: hourPillar.branch },
   });
 
-  const currentAge = currentYear - normalizedBirth.solar.year + 1;
+  const currentAge = calculateInternationalAge(normalizedBirth.solar, currentDate);
 
   const daeun = calculateDaeun({
     yearStem: yearPillar.stem,
@@ -152,7 +154,7 @@ export function analyzeChart(args: {
     birthCalculation: normalizedBirth.calculation,
     dayStem,
     dayBranch,
-    currentYear,
+    currentAge,
   });
 
   const seyun = calculateSeyun(currentYear, dayStem);
@@ -187,6 +189,7 @@ export function analyzeChart(args: {
     branchRelations,
     sals,
     currentAge,
+    currentYear,
     daeun,
     seyun,
     wolun,
@@ -312,6 +315,64 @@ const TWELVE_SAL_GROUP_START: ReadonlyArray<{ branches: readonly string[]; start
   { branches: ["巳", "酉", "丑"], start: "丑" },
 ];
 
+const CHEON_EUL_GWIIN_MAP: Record<string, string[]> = {
+  甲: ["丑", "未"],
+  乙: ["子", "申"],
+  丙: ["亥", "酉"],
+  丁: ["亥", "酉"],
+  戊: ["丑", "未"],
+  己: ["子", "申"],
+  庚: ["丑", "未"],
+  辛: ["寅", "午"],
+  壬: ["卯", "巳"],
+  癸: ["卯", "巳"],
+};
+
+const YEOKMA_MAP: Record<string, string> = {
+  寅: "申",
+  申: "寅",
+  巳: "亥",
+  亥: "巳",
+  子: "午",
+  午: "子",
+  卯: "酉",
+  酉: "卯",
+  辰: "戌",
+  戌: "辰",
+  丑: "未",
+  未: "丑",
+};
+
+const DOHWA_MAP: Record<string, string> = {
+  寅: "卯",
+  午: "卯",
+  戌: "卯",
+  申: "酉",
+  子: "酉",
+  辰: "酉",
+  巳: "午",
+  酉: "午",
+  丑: "午",
+  亥: "子",
+  卯: "子",
+  未: "子",
+};
+
+const HWAGAE_MAP: Record<string, string> = {
+  寅: "戌",
+  午: "戌",
+  戌: "戌",
+  申: "辰",
+  子: "辰",
+  辰: "辰",
+  巳: "丑",
+  酉: "丑",
+  丑: "丑",
+  亥: "未",
+  卯: "未",
+  未: "未",
+};
+
 function getTwelveSals(yearBranch: string, targetBranch: string): string {
   const targetIdx = (EARTHLY_BRANCHES as readonly string[]).indexOf(targetBranch);
   if (targetIdx < 0) return "";
@@ -326,73 +387,19 @@ function getTwelveSals(yearBranch: string, targetBranch: string): string {
 }
 
 function getCheonEulGwiin(dayStem: string): string[] {
-  const map: Record<string, string[]> = {
-    甲: ["丑", "未"],
-    乙: ["子", "申"],
-    丙: ["亥", "酉"],
-    丁: ["亥", "酉"],
-    戊: ["丑", "未"],
-    己: ["子", "申"],
-    庚: ["丑", "未"],
-    辛: ["寅", "午"],
-    壬: ["卯", "巳"],
-    癸: ["卯", "巳"],
-  };
-  return map[dayStem] || [];
+  return CHEON_EUL_GWIIN_MAP[dayStem] || [];
 }
 
 function getYeokma(dayBranch: string): string {
-  const map: Record<string, string> = {
-    寅: "申",
-    申: "寅",
-    巳: "亥",
-    亥: "巳",
-    子: "午",
-    午: "子",
-    卯: "酉",
-    酉: "卯",
-    辰: "戌",
-    戌: "辰",
-    丑: "未",
-    未: "丑",
-  };
-  return map[dayBranch] || "";
+  return YEOKMA_MAP[dayBranch] || "";
 }
 
 function getDohwa(dayBranch: string): string {
-  const map: Record<string, string> = {
-    寅: "卯",
-    午: "卯",
-    戌: "卯",
-    申: "酉",
-    子: "酉",
-    辰: "酉",
-    巳: "午",
-    酉: "午",
-    丑: "午",
-    亥: "子",
-    卯: "子",
-    未: "子",
-  };
-  return map[dayBranch] || "";
+  return DOHWA_MAP[dayBranch] || "";
 }
 
 function getHwagae(dayBranch: string): string {
-  const map: Record<string, string> = {
-    寅: "戌",
-    午: "戌",
-    戌: "戌",
-    申: "辰",
-    子: "辰",
-    辰: "辰",
-    巳: "丑",
-    酉: "丑",
-    丑: "丑",
-    亥: "未",
-    卯: "未",
-    未: "未",
-  };
-  return map[dayBranch] || "";
+  return HWAGAE_MAP[dayBranch] || "";
 }
 
 function calculateSals(dayStem: string, dayBranch: string, targetBranch: string): string[] {
@@ -675,7 +682,7 @@ function calculateDaeun(args: {
   birthCalculation: { year: number; month: number; day: number; hour: number; minute: number };
   dayStem: string;
   dayBranch: string;
-  currentYear: number;
+  currentAge: number;
 }): {
   startAge: number;
   startAgePrecise: number;
@@ -720,6 +727,7 @@ function calculateDaeun(args: {
     const stem = HEAVENLY_STEMS[stemIdx];
     const branch = EARTHLY_BRANCHES[branchIdx];
     const age = startAge + i * 10;
+    const stage12 = get12Stage(args.dayStem, branch, "bong");
 
     list.push({
       age_range: `${age}`,
@@ -733,15 +741,15 @@ function calculateDaeun(args: {
       startYear: args.birthSolar.year + age,
       stemTenGod: getTenGod(args.dayStem, stem),
       branchTenGod: getTenGod(args.dayStem, BRANCH_HIDDEN_STEMS[branch]?.정기 || ""),
-      "12unsung": get12Stage(args.dayStem, branch, "bong"),
+      stage12,
+      "12unsung": stage12,
       sal: calculateSals(args.dayStem, args.dayBranch, branch),
     });
   }
 
-  const currentAge = args.currentYear - args.birthSolar.year + 1;
   let current: DaeunItem | null = null;
   for (const d of list) {
-    if (currentAge >= d.startAge && currentAge <= d.endAge) {
+    if (args.currentAge >= d.startAge && args.currentAge <= d.endAge) {
       current = d;
       break;
     }
@@ -759,6 +767,18 @@ function calculateDaeun(args: {
       diffDays: Number(diffDaysRaw.toFixed(6)),
     },
   };
+}
+
+function calculateInternationalAge(
+  birthDate: { year: number; month: number; day: number },
+  referenceDate: { year: number; month: number; day: number },
+): number {
+  let age = referenceDate.year - birthDate.year;
+  const birthdayPassed =
+    referenceDate.month > birthDate.month ||
+    (referenceDate.month === birthDate.month && referenceDate.day >= birthDate.day);
+  if (!birthdayPassed) age--;
+  return age;
 }
 
 function calculateSeyun(centerYear: number, dayStem: string, count = 10): SeyunItem[] {
@@ -796,16 +816,24 @@ function calculateWolun(year: number, dayStem: string): WolunItem[] {
     const stemIdx = (startStem + i) % 10;
     const stem = HEAVENLY_STEMS[stemIdx];
     const branch = EARTHLY_BRANCHES[branchIdx];
+    const monthName = WOLUN_MONTH_NAMES[i];
+    const stemTenGod = getTenGod(dayStem, stem);
+    const branchTenGod = getTenGod(dayStem, BRANCH_HIDDEN_STEMS[branch]?.정기 || "");
+    const stage12 = get12Stage(dayStem, branch, "bong");
 
     out.push({
       month: i + 1,
-      month_name: WOLUN_MONTH_NAMES[i],
+      monthName,
+      month_name: monthName,
       ganzhi: stem + branch,
       stem,
       branch,
-      stem_tengod: getTenGod(dayStem, stem),
-      branch_tengod: getTenGod(dayStem, BRANCH_HIDDEN_STEMS[branch]?.정기 || ""),
-      "12unsung": get12Stage(dayStem, branch, "bong"),
+      stemTenGod,
+      stem_tengod: stemTenGod,
+      branchTenGod,
+      branch_tengod: branchTenGod,
+      stage12,
+      "12unsung": stage12,
     });
   }
 
@@ -943,7 +971,7 @@ function generateInterpretation(args: {
   fiveElements: Record<string, number>;
   sinsal: { gilsin: string[]; hyungsin: string[] };
 }): string {
-  let text = "📑 종합 해석\n\n";
+  let text = "";
 
   switch (args.geukguk) {
     case "관격":

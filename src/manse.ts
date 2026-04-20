@@ -37,7 +37,7 @@ export function normalizeInput(input: SajuInput): NormalizedInput {
     year: input.year,
     month: input.month,
     day: input.day,
-    hour: input.hour ?? 0,
+    hour: input.hour ?? 12,
     minute: input.minute ?? 0,
     gender: input.gender ?? "여",
     calendar: input.calendar ?? "solar",
@@ -282,9 +282,10 @@ function getTimezoneStandardLongitude(timeZone: string, referenceDate: Date): nu
   return standardOffset / 4;
 }
 
-export function getKstNowYear(reference?: Date): number {
+export function getKstNowDate(reference?: Date): { year: number; month: number; day: number } {
   const now = reference ? new Date(reference) : new Date();
-  return formatInTimeZone(now, KOREA_TIMEZONE).year;
+  const kst = formatInTimeZone(now, KOREA_TIMEZONE);
+  return { year: kst.year, month: kst.month, day: kst.day };
 }
 
 // =============================

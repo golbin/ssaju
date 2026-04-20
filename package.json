@@ -1,6 +1,6 @@
 {
   "name": "ssaju",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Tiny, blazing-fast saju/manselyeok engine with LLM-ready output. Zero deps, gzip 15KB, 0.04ms per calc.",
   "license": "MIT",
   "repository": {
@@ -48,6 +48,7 @@
     "build": "npm run clean && npm run build:js && npm run build:types && npm run size",
     "prepack": "npm run build",
     "sample": "tsx sample.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.types.json",
     "test": "tsx --test tests/calculateSaju.test.ts"
   },
   "devDependencies": {
@@ -55,6 +56,7 @@
     "esbuild": "^0.27.0",
     "rimraf": "^6.0.1",
     "terser": "^5.44.1",
+    "typescript": "^5.9.3",
     "tsx": "^4.20.6"
   }
 }

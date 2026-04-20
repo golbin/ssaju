@@ -170,7 +170,7 @@ function countElementsByStemBranch(data: SajuResult): { stem: Record<string, num
 
 export function generateMarkdownSummary(data: SajuResult): string {
   let md = "";
-  const currentYear = data.currentAge + data.solar.year - 1;
+  const currentYear = data.currentYear;
   const genderText = data.input.gender === "남" ? "남성" : "여성";
   const stemRelationText = data.stemRelations.length ? data.stemRelations.map((r) => r.desc).join("; ") : "없음";
   const hiddenByPillar = formatHiddenStemsByPillar(data);
@@ -278,7 +278,7 @@ export function generateMarkdownSummary(data: SajuResult): string {
   for (const d of data.daeun.list) {
     const marker = data.daeun.current && d.age_range === data.daeun.current.age_range ? " ★" : "";
     const salText = d.sal.length ? d.sal.join(", ") : "-";
-    md += `| ${d.age_range}세${marker} | ${d.ganzhi} | ${d.stemTenGod} | ${d.branchTenGod} | ${d["12unsung"]} | ${salText} |\n`;
+    md += `| ${d.age_range}세${marker} | ${d.ganzhi} | ${d.stemTenGod} | ${d.branchTenGod} | ${d.stage12} | ${salText} |\n`;
   }
   md += "\n";
 
@@ -295,7 +295,7 @@ export function generateMarkdownSummary(data: SajuResult): string {
   md += `| 월 | 간지 | 천간십성 | 지지십성 | 12운성 |\n`;
   md += `|:---:|:---:|:---:|:---:|:---:|\n`;
   for (const w of data.wolun) {
-    md += `| ${w.month_name} | ${w.ganzhi} | ${w.stem_tengod} | ${w.branch_tengod} | ${w["12unsung"]} |\n`;
+    md += `| ${w.monthName} | ${w.ganzhi} | ${w.stemTenGod} | ${w.branchTenGod} | ${w.stage12} |\n`;
   }
   md += "\n";
 
@@ -317,14 +317,14 @@ export function generateMarkdownSummary(data: SajuResult): string {
   md += `- 오늘날짜: ${data.reference.now.split(" ")[0]}\n\n`;
 
   md += `## 해석\n`;
-  md += `${data.advanced.interpretation.replace(/📑 종합 해석\n\n/, "")}\n`;
+  md += `${data.advanced.interpretation}\n`;
 
   return md;
 }
 
 export function generateCompactText(data: SajuResult): string {
   const lines: string[] = [];
-  const currentYear = data.currentAge + data.solar.year - 1;
+  const currentYear = data.currentYear;
   const dayDetail = data.pillarDetails.day;
   const pillarKeys = PILLAR_KEYS;
   const strengthChar = data.advanced.dayStrength.strength === "strong" ? "강" : data.advanced.dayStrength.strength === "weak" ? "약" : "중";
@@ -385,7 +385,7 @@ export function generateCompactText(data: SajuResult): string {
   for (const item of data.daeun.list) {
     const mark = data.daeun.current && item.age_range === data.daeun.current.age_range ? "★" : " ";
     const sal = item.sal.length ? item.sal.join(",") : "-";
-    lines.push(`${mark}${item.startAge}(${item.startYear}) ${item.ganzhi} ${item.stemTenGod}/${item.branchTenGod} ${item["12unsung"]} ${sal}`);
+    lines.push(`${mark}${item.startAge}(${item.startYear}) ${item.ganzhi} ${item.stemTenGod}/${item.branchTenGod} ${item.stage12} ${sal}`);
   }
 
   // ## 세운
@@ -400,7 +400,7 @@ export function generateCompactText(data: SajuResult): string {
   lines.push("");
   lines.push(`## 월운 ${currentYear}`);
   for (const w of data.wolun) {
-    lines.push(`${w.month}월 ${w.ganzhi} ${w.stem_tengod}/${w.branch_tengod} ${w["12unsung"]}`);
+    lines.push(`${w.month}월 ${w.ganzhi} ${w.stemTenGod}/${w.branchTenGod} ${w.stage12}`);
   }
 
   // ## 만세력

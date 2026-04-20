@@ -97,8 +97,9 @@ test("golden case: 1992-10-24 05:30 solar", () => {
   assert(result.dayBranch === "酉", "day branch should be 酉");
   assert(result.advanced.geukguk === "종왕격", "geukguk should be 종왕격");
   assertEquals(result.advanced.yongsin, ["庚", "甲", "丁"], "yongsin mismatch");
-  assert(result.currentAge === 35, "currentAge should be 35 when now is 2026");
-  assert(result.daeun.current?.age_range === "35", "current daeun should start at age 35");
+  assert(result.currentAge === 33, "currentAge should be 33 before the 2026 birthday");
+  assert(result.currentYear === 2026, "currentYear should follow injected now");
+  assert(result.daeun.current?.age_range === "25", "current daeun should start at age 25");
 
   assertEquals(
     result.gongmang.branches,
@@ -140,6 +141,69 @@ test("lunar input should match equivalent solar input", () => {
     "lunar to solar conversion mismatch",
   );
   assertEquals(lunarResult.pillars, solarResult.pillars, "lunar/solar pillars should match");
+});
+
+test("currentAge should use exact international age by KST date", () => {
+  const result1998 = calculateSaju({
+    year: 1998,
+    month: 2,
+    day: 22,
+    hour: 0,
+    minute: 0,
+    gender: "남",
+    calendar: "solar",
+    now: new Date("2026-03-04T00:00:00+09:00"),
+  });
+
+  assert(result1998.currentAge === 28, "currentAge should be 28 after the 2026 birthday");
+
+  const beforeBirthday = calculateSaju({
+    year: 2000,
+    month: 4,
+    day: 20,
+    hour: 12,
+    minute: 0,
+    gender: "남",
+    calendar: "solar",
+    now: new Date("2026-04-19T23:59:59+09:00"),
+  });
+
+  const onBirthday = calculateSaju({
+    year: 2000,
+    month: 4,
+    day: 20,
+    hour: 12,
+    minute: 0,
+    gender: "남",
+    calendar: "solar",
+    now: new Date("2026-04-20T00:00:00+09:00"),
+  });
+
+  assert(beforeBirthday.currentAge === 25, "currentAge should remain 25 before the birthday");
+  assert(onBirthday.currentAge === 26, "currentAge should become 26 on the birthday");
+});
+
+test("omitted hour should default to noon", () => {
+  const omitted = calculateSaju({
+    year: 2024,
+    month: 6,
+    day: 15,
+    gender: "여",
+    calendar: "solar",
+  });
+
+  const explicitNoon = calculateSaju({
+    year: 2024,
+    month: 6,
+    day: 15,
+    hour: 12,
+    minute: 0,
+    gender: "여",
+    calendar: "solar",
+  });
+
+  assert(omitted.input.hour === 12, "omitted hour should be normalized to noon");
+  assert(omitted.pillars.hour === explicitNoon.pillars.hour, "omitted hour should match explicit noon");
 });
 
 test("hour boundary: 23:30 and 00:00 are 자시, 01:00 is 축시", () => {
@@ -235,6 +299,7 @@ test("result schema and text outputs should include key sections", () => {
     "branchRelations",
     "sals",
     "currentAge",
+    "currentYear",
     "daeun",
     "seyun",
     "wolun",
@@ -274,6 +339,12 @@ test("result schema and text outputs should include key sections", () => {
   assert(compact.includes("## 만세력"), "compact should include manse");
   assert(compact.includes("장간"), "compact should include hidden stems");
   assert(compact.length < markdown.length, "compact should be shorter than markdown");
+
+  assert(result.daeun.list[0].stage12 === result.daeun.list[0]["12unsung"], "daeun legacy stage alias mismatch");
+  assert(result.wolun[0].monthName === result.wolun[0].month_name, "wolun legacy month alias mismatch");
+  assert(result.wolun[0].stemTenGod === result.wolun[0].stem_tengod, "wolun legacy stem alias mismatch");
+  assert(result.wolun[0].branchTenGod === result.wolun[0].branch_tengod, "wolun legacy branch alias mismatch");
+  assert(result.wolun[0].stage12 === result.wolun[0]["12unsung"], "wolun legacy stage alias mismatch");
 });
 
 test("lichun boundary should switch year/month pillars", () => {
@@ -759,7 +830,7 @@ test("toCompact should contain correct pillar data", () => {
   assert(compact.includes("酉(유)금-"), "compact should contain day branch with element and yinyang");
   assert(compact.includes("격: 종왕격"), "compact should contain geukguk");
   assert(compact.includes("공망 戌(술) 亥(해)"), "compact should contain gongmang values");
-  assert(compact.includes("만 35세"), "compact should contain current age");
+  assert(compact.includes("만 33세"), "compact should contain current age");
   assert(compact.includes("## 세운 2026 기준"), "compact seyun should reference current year");
   assert(compact.includes("★2026"), "compact seyun should mark current year");
 });
